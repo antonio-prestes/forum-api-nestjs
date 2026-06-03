@@ -4,5 +4,6 @@ import { PrismaService } from './prisma.service';
 @Module({
   providers: [PrismaService],
   controllers: [],
+  exports: [PrismaService],
 })
 export class DatabaseModule {}
