@@ -1,29 +1,24 @@
-import { Body, Controller, Post } from '@nestjs/common';
+import { Controller, Get, UseGuards } from '@nestjs/common';
 import UserService from './user.service';
-import { User as UserModel } from '@prisma/client';
-import { ApiTags, ApiOperation, ApiProperty } from '@nestjs/swagger';
-
-class CreateUserDto {
-  @ApiProperty({ example: 'Diego', required: false })
-  name?: string;
-
-  @ApiProperty({ example: 'diego@example.com' })
-  email: string;
-
-  @ApiProperty({ example: 'password123' })
-  password: string;
-}
+import { ApiBearerAuth, ApiTags, ApiOperation } from '@nestjs/swagger';
+import { JwtAuthGuard } from '../auth/jwt-auth.guard';
+import { CurrentUser } from '../auth/decorators/current-user.decorator';
 
 @ApiTags('users')
-@Controller('user')
+@Controller('users')
 export class UserController {
   constructor(private readonly userService: UserService) {}
 
-  @Post('user')
-  @ApiOperation({ summary: 'Create a new user (signup)' })
-  async signupUser(
-    @Body() userData: CreateUserDto,
-  ): Promise<UserModel> {
-    return this.userService.createUser(userData);
+  @Get('me')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Get the currently authenticated user profile' })
+  async getProfile(@CurrentUser() user: { id: number; email: string }) {
+    const found = await this.userService.user({ id: user.id });
+    if (found) {
+      const { password, ...result } = found;
+      return result;
+    }
+    return null;
   }
 }

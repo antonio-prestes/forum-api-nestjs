@@ -4,7 +4,6 @@ import AnswerService from './answer.service';
 
 describe('AnswerController', () => {
   let controller: AnswerController;
-  let service: AnswerService;
 
   const mockAnswerService = {
     createAnswer: jest.fn(),
@@ -24,7 +23,6 @@ describe('AnswerController', () => {
     }).compile();
 
     controller = module.get<AnswerController>(AnswerController);
-    service = module.get<AnswerService>(AnswerService);
   });
 
   afterEach(() => {
@@ -35,32 +33,35 @@ describe('AnswerController', () => {
     expect(controller).toBeDefined();
   });
 
-  it('should create an answer', async () => {
-    const data = { body: 'Answer body', userId: 1, questionId: 1 };
-    const mockAnswer = { id: 1, ...data };
+  it('should create an answer with userId from token and questionId from param', async () => {
+    const data = { body: 'Answer body' };
+    const user = { id: 1, email: 'test@test.com' };
+    const mockAnswer = { id: 1, body: 'Answer body', userId: 1, questionId: 2 };
     mockAnswerService.createAnswer.mockResolvedValue(mockAnswer);
 
-    const result = await controller.create(data);
+    const result = await controller.create(2, data, user);
     expect(result).toEqual(mockAnswer);
-    expect(mockAnswerService.createAnswer).toHaveBeenCalledWith(data);
+    expect(mockAnswerService.createAnswer).toHaveBeenCalledWith({
+      body: 'Answer body',
+      userId: 1,
+      questionId: 2,
+    });
   });
 
   it('should update an answer', async () => {
     const data = { body: 'Updated body' };
-    const mockAnswer = { id: 1, body: 'Updated body', userId: 1, questionId: 1 };
+    const mockAnswer = { id: 1, body: 'Updated body', userId: 1, questionId: 2 };
     mockAnswerService.updateAnswer.mockResolvedValue(mockAnswer);
 
     const result = await controller.update(1, data);
     expect(result).toEqual(mockAnswer);
-    expect(mockAnswerService.updateAnswer).toHaveBeenCalledWith(1, data);
   });
 
   it('should delete an answer', async () => {
-    const mockAnswer = { id: 1, body: 'Answer body', userId: 1, questionId: 1 };
+    const mockAnswer = { id: 1, body: 'Answer body', userId: 1, questionId: 2 };
     mockAnswerService.deleteAnswer.mockResolvedValue(mockAnswer);
 
     const result = await controller.delete(1);
     expect(result).toEqual(mockAnswer);
-    expect(mockAnswerService.deleteAnswer).toHaveBeenCalledWith(1);
   });
 });

@@ -1,26 +1,10 @@
-import { Body, Controller, Delete, Get, Param, ParseIntPipe, Post, Put } from '@nestjs/common';
+import { Controller, Delete, Get, Param, ParseIntPipe, Post, Put, Body, UseGuards } from '@nestjs/common';
 import { Questions } from '@prisma/client';
 import QuestionService from './question.service';
-import { ApiTags, ApiOperation, ApiProperty } from '@nestjs/swagger';
-
-class CreateQuestionDto {
-  @ApiProperty({ example: 'How to use NestJS?' })
-  title: string;
-
-  @ApiProperty({ example: 'I am new to NestJS, how do I create a module?' })
-  body: string;
-
-  @ApiProperty({ example: 1 })
-  userId: number;
-}
-
-class UpdateQuestionDto {
-  @ApiProperty({ example: 'How to use NestJS? (Updated)', required: false })
-  title?: string;
-
-  @ApiProperty({ example: 'Updated body content...', required: false })
-  body?: string;
-}
+import { ApiBearerAuth, ApiTags, ApiOperation } from '@nestjs/swagger';
+import { JwtAuthGuard } from '../auth/jwt-auth.guard';
+import { CurrentUser } from '../auth/decorators/current-user.decorator';
+import { CreateQuestionDto, UpdateQuestionDto } from './dto/question.dto';
 
 @ApiTags('questions')
 @Controller('questions')
@@ -28,11 +12,17 @@ export class QuestionController {
   constructor(private readonly questionService: QuestionService) {}
 
   @Post()
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
   @ApiOperation({ summary: 'Create a new question (post)' })
   async create(
     @Body() data: CreateQuestionDto,
+    @CurrentUser() user: { id: number; email: string },
   ): Promise<Questions> {
-    return this.questionService.createQuestion(data);
+    return this.questionService.createQuestion({
+      ...data,
+      userId: user.id,
+    });
   }
 
   @Get()
@@ -48,6 +38,8 @@ export class QuestionController {
   }
 
   @Put(':id')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
   @ApiOperation({ summary: 'Update a question by ID' })
   async update(
     @Param('id', ParseIntPipe) id: number,
@@ -57,6 +49,8 @@ export class QuestionController {
   }
 
   @Delete(':id')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
   @ApiOperation({ summary: 'Delete a question by ID' })
   async delete(@Param('id', ParseIntPipe) id: number): Promise<Questions> {
     return this.questionService.deleteQuestion(id);

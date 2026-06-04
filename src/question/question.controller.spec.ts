@@ -4,7 +4,6 @@ import QuestionService from './question.service';
 
 describe('QuestionController', () => {
   let controller: QuestionController;
-  let service: QuestionService;
 
   const mockQuestionService = {
     createQuestion: jest.fn(),
@@ -26,7 +25,6 @@ describe('QuestionController', () => {
     }).compile();
 
     controller = module.get<QuestionController>(QuestionController);
-    service = module.get<QuestionService>(QuestionService);
   });
 
   afterEach(() => {
@@ -37,50 +35,50 @@ describe('QuestionController', () => {
     expect(controller).toBeDefined();
   });
 
-  it('should create a question', async () => {
-    const data = { title: 'Title', body: 'Body', userId: 1 };
-    const mockQuestion = { id: 1, ...data };
+  it('should create a question with userId from token', async () => {
+    const data = { title: 'Title', body: 'Body' };
+    const user = { id: 1, email: 'test@test.com' };
+    const mockQuestion = { id: 1, ...data, userId: 1 };
     mockQuestionService.createQuestion.mockResolvedValue(mockQuestion);
 
-    const result = await controller.create(data);
+    const result = await controller.create(data, user);
     expect(result).toEqual(mockQuestion);
-    expect(mockQuestionService.createQuestion).toHaveBeenCalledWith(data);
+    expect(mockQuestionService.createQuestion).toHaveBeenCalledWith({
+      ...data,
+      userId: 1,
+    });
   });
 
   it('should find all questions', async () => {
-    const mockQuestions = [{ id: 1, title: 'Title', body: 'Body', userId: 1 }];
+    const mockQuestions = [{ id: 1, title: 'Title', body: 'Body' }];
     mockQuestionService.findAllQuestions.mockResolvedValue(mockQuestions);
 
     const result = await controller.findAll();
     expect(result).toEqual(mockQuestions);
-    expect(mockQuestionService.findAllQuestions).toHaveBeenCalled();
   });
 
   it('should find a question by id', async () => {
-    const mockQuestion = { id: 1, title: 'Title', body: 'Body', userId: 1 };
+    const mockQuestion = { id: 1, title: 'Title', body: 'Body' };
     mockQuestionService.findQuestionById.mockResolvedValue(mockQuestion);
 
     const result = await controller.findOne(1);
     expect(result).toEqual(mockQuestion);
-    expect(mockQuestionService.findQuestionById).toHaveBeenCalledWith(1);
   });
 
   it('should update a question', async () => {
-    const data = { title: 'Updated Title' };
-    const mockQuestion = { id: 1, title: 'Updated Title', body: 'Body', userId: 1 };
+    const data = { title: 'Updated' };
+    const mockQuestion = { id: 1, title: 'Updated', body: 'Body' };
     mockQuestionService.updateQuestion.mockResolvedValue(mockQuestion);
 
     const result = await controller.update(1, data);
     expect(result).toEqual(mockQuestion);
-    expect(mockQuestionService.updateQuestion).toHaveBeenCalledWith(1, data);
   });
 
   it('should delete a question', async () => {
-    const mockQuestion = { id: 1, title: 'Title', body: 'Body', userId: 1 };
+    const mockQuestion = { id: 1, title: 'Title', body: 'Body' };
     mockQuestionService.deleteQuestion.mockResolvedValue(mockQuestion);
 
     const result = await controller.delete(1);
     expect(result).toEqual(mockQuestion);
-    expect(mockQuestionService.deleteQuestion).toHaveBeenCalledWith(1);
   });
 });

@@ -1,38 +1,35 @@
-import { Body, Controller, Delete, Param, ParseIntPipe, Post, Put } from '@nestjs/common';
+import { Body, Controller, Delete, Param, ParseIntPipe, Post, Put, UseGuards } from '@nestjs/common';
 import { Answers } from '@prisma/client';
 import AnswerService from './answer.service';
-import { ApiTags, ApiOperation, ApiProperty } from '@nestjs/swagger';
-
-class CreateAnswerDto {
-  @ApiProperty({ example: 'This is my comment or answer.' })
-  body: string;
-
-  @ApiProperty({ example: 1 })
-  userId: number;
-
-  @ApiProperty({ example: 1 })
-  questionId: number;
-}
-
-class UpdateAnswerDto {
-  @ApiProperty({ example: 'Updated comment or answer content.' })
-  body: string;
-}
+import { ApiBearerAuth, ApiTags, ApiOperation } from '@nestjs/swagger';
+import { JwtAuthGuard } from '../auth/jwt-auth.guard';
+import { CurrentUser } from '../auth/decorators/current-user.decorator';
+import { CreateAnswerDto, UpdateAnswerDto } from './dto/answer.dto';
 
 @ApiTags('answers')
-@Controller('answers')
+@Controller()
 export class AnswerController {
   constructor(private readonly answerService: AnswerService) {}
 
-  @Post()
-  @ApiOperation({ summary: 'Create a new answer (comment)' })
+  @Post('questions/:questionId/answers')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Create an answer for a question' })
   async create(
+    @Param('questionId', ParseIntPipe) questionId: number,
     @Body() data: CreateAnswerDto,
+    @CurrentUser() user: { id: number; email: string },
   ): Promise<Answers> {
-    return this.answerService.createAnswer(data);
+    return this.answerService.createAnswer({
+      body: data.body,
+      userId: user.id,
+      questionId,
+    });
   }
 
-  @Put(':id')
+  @Put('answers/:id')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
   @ApiOperation({ summary: 'Update an answer by ID' })
   async update(
     @Param('id', ParseIntPipe) id: number,
@@ -41,7 +38,9 @@ export class AnswerController {
     return this.answerService.updateAnswer(id, data);
   }
 
-  @Delete(':id')
+  @Delete('answers/:id')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
   @ApiOperation({ summary: 'Delete an answer by ID' })
   async delete(@Param('id', ParseIntPipe) id: number): Promise<Answers> {
     return this.answerService.deleteAnswer(id);

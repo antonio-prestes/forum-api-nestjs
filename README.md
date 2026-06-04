@@ -41,31 +41,34 @@ Questions 1──N Answers
 
 ## Endpoints
 
-### Users
+### Autenticação & Usuários
 
-| Método | Rota         | Descrição          |
-|--------|--------------|--------------------|
-| POST   | `/user/user` | Criar usuário      |
+| Método | Rota            | Descrição                         | Autenticação |
+|--------|-----------------|-----------------------------------|--------------|
+| POST   | `/auth/signup`  | Cadastrar um novo usuário         | Nenhuma      |
+| POST   | `/auth/login`   | Fazer login e obter o token JWT   | Nenhuma      |
+| GET    | `/users/me`     | Obter perfil do usuário logado     | Bearer Token |
 
-### Questions
+### Questions (Perguntas)
 
-| Método | Rota              | Descrição                              |
-|--------|--------------------|----------------------------------------|
-| POST   | `/questions`       | Criar pergunta                         |
-| GET    | `/questions`       | Listar todas (com autor e nº respostas)|
-| GET    | `/questions/:id`   | Detalhar pergunta com respostas        |
-| PUT    | `/questions/:id`   | Atualizar pergunta                     |
-| DELETE | `/questions/:id`   | Remover pergunta                       |
+| Método | Rota            | Descrição                                 | Autenticação |
+|--------|-----------------|-------------------------------------------|--------------|
+| POST   | `/questions`    | Criar uma nova pergunta                   | Bearer Token |
+| GET    | `/questions`    | Listar todas as perguntas                 | Nenhuma      |
+| GET    | `/questions/:id`| Detalhar uma pergunta com suas respostas  | Nenhuma      |
+| PUT    | `/questions/:id`| Atualizar uma pergunta                    | Bearer Token |
+| DELETE | `/questions/:id`| Remover uma pergunta                      | Bearer Token |
 
-### Answers
+### Answers (Respostas)
 
-| Método | Rota             | Descrição            |
-|--------|------------------|----------------------|
-| POST   | `/answers`       | Criar resposta       |
-| PUT    | `/answers/:id`   | Atualizar resposta   |
-| DELETE | `/answers/:id`   | Remover resposta     |
+| Método | Rota                                  | Descrição                                | Autenticação |
+|--------|---------------------------------------|------------------------------------------|--------------|
+| POST   | `/questions/:questionId/answers`      | Criar resposta para uma pergunta         | Bearer Token |
+| PUT    | `/answers/:id`                        | Atualizar uma resposta                   | Bearer Token |
+| DELETE | `/answers/:id`                        | Remover uma resposta                     | Bearer Token |
 
-> Documentação interativa disponível em `http://localhost:3000/api` (Swagger UI).
+> **Nota sobre Autenticação**: Os endpoints protegidos por autenticação exigem o envio do token JWT no cabeçalho HTTP `Authorization: Bearer <seu_token>`.
+> A documentação interativa e testes de requisição podem ser feitos diretamente em `http://localhost:3000/api` (Swagger UI), inserindo o token JWT através do botão "Authorize".
 
 ## Como rodar
 
